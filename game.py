@@ -3,7 +3,7 @@ import time
 import random
 import sys
 from Player import player
-from Board import room, roomSizes
+from Board import board, room, roomSizes
 
 if __name__ == "__main__":
 	def setCurses(stdscr):
@@ -16,22 +16,37 @@ if __name__ == "__main__":
 		setCurses(stdscr)
 		h, w = stdscr.getmaxyx()
 		p1 = player('raf', 10)
+		b = board(1)
 
 		if len(sys.argv) > 1:
 			seed = int(sys.argv[1])
+		else: seed = ''
 
-
-		random.seed(seed)
+		random.seed()
 		roomSizeIdx = random.randrange(0, len(roomSizes))
 
-		r1 = room(roomSizes[roomSizeIdx], stdscr)
+		random.seed()
+		numRooms = random.randrange(1, 6)
+		for i in range(0,  numRooms):
+			random.seed()
+			roomSizeIdx = random.randrange(0, len(roomSizes))
+
+			originX = random.randrange(0, w - 20)
+			originY = random.randrange(0, h - 15)
+			origin = (originX, originY)
+			b.addRoom(room(roomSizes[roomSizeIdx], stdscr, origin))
+
 		running = True
 		while running:
 
 			stdscr.addstr(h-1, int(w/2), '           ') 
 			stdscr.addstr(h-1, int(w/2), '(%i, %i)' % (p1.getX(), p1.getY())) 
-			r1.makeRoom()
-
+			stdscr.addstr(h-1, 1, '        ') 
+			stdscr.addstr(h-1, 1, 'Health: %i' % (p1.getHealth()))
+			stdscr.addstr(h-1, w-10, '        ') 
+			stdscr.addstr(h-1, w-10, 'Rooms: %i' % (b.getNumRooms()))
+			
+			b.printBoard()
 
 			stdscr.move(p1.y, p1.x)
 			key = stdscr.getch()
@@ -43,7 +58,7 @@ if __name__ == "__main__":
 					p1.y -= 1
 
 			elif key == curses.KEY_DOWN:
-				if p1.y == h-1:
+				if p1.y == h-2:
 					p1.y = p1.y
 				else:
 					p1.y += 1
@@ -64,9 +79,8 @@ if __name__ == "__main__":
 				exit()
 
 
-			r1.update(p1)
+			b.updateRooms(p1)
 			stdscr.refresh()
-
 
 	curses.wrapper(main)
 
